@@ -95,6 +95,7 @@ if [ ! -f "$APP_DIR/.env" ]; then
     echo "ADMIN_PASSWORD=\"$GEN_PW\""
     echo "SESSION_SECRET=\"$GEN_SECRET\""
     echo "PORT=$PORT"
+    echo "DEPLOYER_PROXY_NETWORK=\"$PROXY_NETWORK\""
     [ "$DEPLOYER_PROXY_DIR" != "/root/prxyman" ] && echo "DEPLOYER_PROXY_DIR=\"$DEPLOYER_PROXY_DIR\""
     [ "$DEPLOYER_APPS_ROOT" != "/root" ]        && echo "DEPLOYER_APPS_ROOT=\"$DEPLOYER_APPS_ROOT\""
   } > "$APP_DIR/.env"

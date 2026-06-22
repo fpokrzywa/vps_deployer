@@ -7,6 +7,7 @@ import JobConsole from "@/components/JobConsole";
 
 export default function Dashboard() {
   const [sites, setSites] = useState(null);
+  const [bind, setBind] = useState(null);
   const [err, setErr] = useState("");
   const [job, setJob] = useState(null); // { id, title }
 
@@ -23,6 +24,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     load();
+    fetch("/api/env", { cache: "no-store" })
+      .then((r) => r.json())
+      .then(setBind)
+      .catch(() => {});
   }, [load]);
 
   async function update(name) {
@@ -48,6 +53,30 @@ export default function Dashboard() {
           </div>
           <Link href="/deploy" className="btn btn-primary btn-sm">+ Deploy new site</Link>
         </div>
+
+        {bind && (
+          <div className="bind-strip">
+            <span className={`bind-item ${bind.networkExists ? "ok" : "bad"}`}>
+              <span className="led" /> network <code>{bind.network}</code>
+              {bind.networkExists ? "" : " (missing)"}
+            </span>
+            <span className={`bind-item ${bind.npm.container && bind.npm.onNetwork ? "ok" : "bad"}`}>
+              <span className="led" /> NPM{" "}
+              {bind.npm.container ? (
+                <>
+                  <code>{bind.npm.container}</code> {bind.npm.onNetwork ? "· on network" : "· NOT on network"}
+                </>
+              ) : (
+                "none running"
+              )}
+            </span>
+            {bind.gateway && (
+              <span className="bind-item">
+                NPM reaches this app at <code>{bind.gateway}:{bind.port}</code>
+              </span>
+            )}
+          </div>
+        )}
 
         {err && <div className="banner err">{err}</div>}
 

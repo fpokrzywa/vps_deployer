@@ -121,6 +121,17 @@ input, select, button, textarea { font-family: inherit; font-size: inherit; colo
 .status-pill.success { background: rgba(63,185,104,.15); color: var(--green); }
 .status-pill.error { background: rgba(229,91,91,.15); color: var(--red); }
 
+.bind-strip {
+  display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r);
+  padding: 11px 16px; margin-bottom: 18px; font-size: 12.5px; color: var(--muted);
+}
+.bind-item { display: inline-flex; align-items: center; gap: 7px; }
+.bind-item code { color: var(--text); background: var(--panel-2); padding: 1px 6px; border-radius: 5px; font-family: var(--mono); }
+.bind-item .led { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.bind-item.ok .led { background: var(--green); box-shadow: 0 0 7px var(--green); }
+.bind-item.bad .led { background: var(--red); }
+
 .flex-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .banner { padding: 11px 14px; border-radius: 8px; font-size: 13.5px; margin-bottom: 14px; }
 .banner.err { background: rgba(229,91,91,.12); color: #f1a3a3; border: 1px solid rgba(229,91,91,.3); }
