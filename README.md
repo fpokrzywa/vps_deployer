@@ -29,12 +29,16 @@ and `docker`, and edits `/root/prxyman/docker-compose.yml`). Expects:
 ## Setup
 
 ```bash
-git clone git@github.com:fpokrzywa/vps_deployer.git /root/deployer
+# HTTPS clone — works on any machine, no SSH key needed (repo is public)
+git clone https://github.com/fpokrzywa/vps_deployer.git /root/deployer
 cd /root/deployer
 npm install
 cp .env.example .env        # set ADMIN_PASSWORD + SESSION_SECRET
 npm run build
 ```
+
+> Use the HTTPS URL above on a fresh VPS. The `git@github.com:` (SSH) form only
+> works if that machine's SSH key is registered on your GitHub account.
 
 `.env`:
 ```
