@@ -26,65 +26,62 @@ and `docker`, and edits `/root/prxyman/docker-compose.yml`). Expects:
 - Docker + compose, Node 20+, and (for Flutter apps) Flutter at `/root/flutter`.
 - The proxy hub at `/root/prxyman` (see the `vps_buildout` repo).
 
-## Setup
+## Install (any VPS, one command)
 
 ```bash
-# HTTPS clone — works on any machine, no SSH key needed (repo is public)
+# Public repo — HTTPS clone, no SSH key needed
 git clone https://github.com/fpokrzywa/vps_deployer.git /root/deployer
 cd /root/deployer
-npm install
-cp .env.example .env        # set ADMIN_PASSWORD + SESSION_SECRET
-npm run build
+sudo bash install.sh
 ```
 
-> Use the HTTPS URL above on a fresh VPS. The `git@github.com:` (SSH) form only
-> works if that machine's SSH key is registered on your GitHub account.
+`install.sh` is **idempotent** and adapts to the box. It:
 
-`.env`:
-```
-ADMIN_PASSWORD="a-strong-password"
-SESSION_SECRET="$(openssl rand -base64 32)"
-```
+1. Checks Docker (errors with a pointer to the `vps_buildout` bootstrap if absent)
+   and installs Node 20 if missing.
+2. Ensures the proxy network exists (creates it if not).
+3. **Adopts an already-running Nginx Proxy Manager** — connects it to the proxy
+   network — or warns if none is running. (This is the case that bites a second
+   VPS: an existing NPM from another stack already holds ports 80/443.)
+4. Ensures the proxy compose file exists (creates a minimal one if not).
+5. Generates `.env` with a random admin password + session secret (printed once).
+6. Builds, installs a `vps-deployer` systemd service, opens the firewall for the
+   proxy subnet, and prints the URL + NPM proxy-host details.
 
-### Run as a service
+### Adapting to a different layout
 
-```ini
-# /etc/systemd/system/vps-deployer.service
-[Unit]
-Description=VPS Deployer
-After=network.target docker.service
-Wants=docker.service
-
-[Service]
-Type=simple
-WorkingDirectory=/root/deployer
-ExecStart=/usr/bin/npm run start
-Restart=on-failure
-RestartSec=5
-Environment=NODE_ENV=production
-
-[Install]
-WantedBy=multi-user.target
-```
+Everything is env-driven (see `.env.example`). Override before running the
+installer if this box differs from the defaults:
 
 ```bash
-systemctl daemon-reload && systemctl enable --now vps-deployer
+PORT=4600 PROXY_NETWORK=myproxy DEPLOYER_PROXY_DIR=/srv/proxy sudo -E bash install.sh
 ```
 
-It listens on `0.0.0.0:4500`.
+| Variable              | Default          | Meaning                                  |
+|-----------------------|------------------|------------------------------------------|
+| `PORT`                | `4500`           | Port the app listens on                  |
+| `PROXY_NETWORK`       | `prxyman_proxy`  | Docker network apps + NPM share          |
+| `DEPLOYER_PROXY_DIR`  | `/root/prxyman`  | Dir holding the proxy `docker-compose.yml` |
+| `DEPLOYER_APPS_ROOT`  | `/root`          | Where app repos are cloned               |
+| `DEPLOYER_FLUTTER_BIN`| `/root/flutter/bin` | Flutter SDK bin dir                   |
+
+### Manual setup (if you prefer)
+
+```bash
+npm install && cp .env.example .env   # edit it
+npm run build
+# then install a systemd unit (see install.sh for the template) and:
+systemctl enable --now vps-deployer
+```
 
 ## Expose via NPM
 
-Allow the proxy network to reach it, then add a Proxy Host:
-
-```bash
-ufw allow from 172.21.0.0/16 to any port 4500 comment "NPM -> vps-deployer"
-```
-
-In NPM → Proxy Hosts → Add: forward to `172.21.0.1` port `4500`, request an SSL cert.
+The installer opens the firewall and prints the exact values. In NPM → Proxy
+Hosts → Add: forward to the **proxy-network gateway IP** (shown by the installer,
+e.g. `172.21.0.1`) on your chosen `PORT`, request an SSL cert.
 
 > ⚠️ This app runs arbitrary builds as root. Keep it behind NPM + SSL (and ideally
-> SSO). Do **not** expose port 4500 publicly.
+> SSO). Do **not** expose the port publicly.
 
 ## Layout
 
